@@ -124,3 +124,84 @@ kunal@kunal-Lenovo-U410:~/cloudFormation/chapter1$ aws s3 ls s3://mybuckercodepi
 
 ##################################################################
 Making Changes in the source i.e Github
+
+Adding a file named Test.txt
+##################################################################
+kunal@kunal-Lenovo-U410:~/cloudFormation/JavacodeforPractice2$ git commit -m "test with code pipeline"
+[main c7d4093] test with code pipeline
+ 1 file changed, 1 insertion(+)
+ create mode 100644 test.txt
+kunal@kunal-Lenovo-U410:~/cloudFormation/JavacodeforPractice2$ ls -ltr
+total 44
+-rw-rw-r-- 1 kunal kunal 1081 Feb 13 19:42 buildspec-build-matrix.yaml
+-rw-rw-r-- 1 kunal kunal  840 Feb 13 19:42 buildspec-batch-list-compute-type.yaml
+-rw-rw-r-- 1 kunal kunal  462 Feb 13 19:42 build2.yml
+-rw-rw-r-- 1 kunal kunal  547 Feb 13 19:42 appspec.yml
+-rw-rw-r-- 1 kunal kunal  848 Feb 13 19:42 pom.xml
+-rw-rw-r-- 1 kunal kunal  679 Feb 13 19:42 index.html
+-rw-rw-r-- 1 kunal kunal  335 Feb 13 19:42 deployment.yaml
+-rw-rw-r-- 1 kunal kunal  690 Feb 13 19:42 buildspec.yaml
+-rw-rw-r-- 1 kunal kunal 1092 Feb 13 19:42 buildspec-graph.yaml
+drwxrwxr-x 4 kunal kunal 4096 Feb 13 19:42 src1
+-rw-rw-r-- 1 kunal kunal    8 Feb 13 19:43 test.txt
+kunal@kunal-Lenovo-U410:~/cloudFormation/JavacodeforPractice2$ git push
+Enumerating objects: 4, done.
+Counting objects: 100% (4/4), done.
+Delta compression using up to 4 threads
+Compressing objects: 100% (2/2), done.
+Writing objects: 100% (3/3), 287 bytes | 287.00 KiB/s, done.
+Total 3 (delta 1), reused 0 (delta 0), pack-reused 0
+remote: Resolving deltas: 100% (1/1), completed with 1 local object.
+To https://github.com/kunal3237/JavacodeforPractice2.git
+   291c4ed..c7d4093  main -> main
+kunal@kunal-Lenovo-U410:~/cloudFormation/JavacodeforPractice2$ 
+
+#########################################################################
+
+Code Pipeline executed the pipeline
+######################################################
+kunal@kunal-Lenovo-U410:~/cloudFormation/JavacodeforPractice2$ aws codepipeline list-pipeline-executions --pipeline-name mypipeline --profile sharma --region ap-south-1
+{
+    "pipelineExecutionSummaries": [
+        {
+            "pipelineExecutionId": "a2a712e3-cd43-4bd6-8df8-587b3f4d4853",                                                ###New Execution ID
+            "status": "Succeeded",
+            "startTime": "2025-02-13T19:47:28.938000+05:30",
+            "lastUpdateTime": "2025-02-13T19:47:44.706000+05:30",
+            "sourceRevisions": [
+                {
+                    "actionName": "SourceAction",
+                    "revisionId": "c7d409333f6eb1a768f6509a7d82373c5a8e5c83",
+                    "revisionSummary": "{\"ProviderType\":\"GitHub\",\"CommitMessage\":\"test with code pipeline\"}",
+                    "revisionUrl": "https://ap-south-1.console.aws.amazon.com/codesuite/settings/connections/redirect?connectionArn=arn:aws:codeconnections:ap-south-1:************************:connection/93b26815-4e19-4a8d-adc1-d78f7a5c2dc8&referenceType=COMMIT&FullRepositoryId=kunal3237/JavacodeforPractice2&Commit=c7d409333f6eb1a768f6509a7d82373c5a8e5c83"
+                }
+            ],
+            "trigger": {
+                "triggerType": "Webhook",
+                "triggerDetail": "arn:aws:codeconnections:ap-south-1:************************:connection/93b26815-4e19-4a8d-adc1-d78f7a5c2dc8"
+            },
+            "executionMode": "SUPERSEDED"
+        },
+        {
+            "pipelineExecutionId": "fcf57e3a-b0be-4aff-9da0-79857404c17a",
+            "status": "Succeeded",
+            "startTime": "2025-02-13T19:37:47.738000+05:30",
+            "lastUpdateTime": "2025-02-13T19:37:54.739000+05:30",
+            "sourceRevisions": [
+                {
+                    "actionName": "SourceAction",
+                    "revisionId": "291c4ed8f8cec6e68b9a268831f2623f6719f91b",
+                    "revisionSummary": "{\"ProviderType\":\"GitHub\",\"CommitMessage\":\"Update deployment.yaml\"}",
+                    "revisionUrl": "https://ap-south-1.console.aws.amazon.com/codesuite/settings/connections/redirect?connectionArn=arn:aws:codeconnections:ap-south-1:************************:connect
+ion/93b26815-4e19-4a8d-adc1-d78f7a5c2dc8&referenceType=COMMIT&FullRepositoryId=kunal3237/JavacodeforPractice2&Commit=291c4ed8f8cec6e68b9a268831f2623f6719f91b"
+                }
+            ],
+            "trigger": {
+                "triggerType": "CreatePipeline",
+                "triggerDetail": "arn:aws:iam::************************:user/sharma"
+            },
+            "executionMode": "SUPERSEDED"
+        }
+    ]
+}
+kunal@kunal-Lenovo-U410:~/cloudFormation/JavacodeforPractice2$ 
