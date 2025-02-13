@@ -1,0 +1,126 @@
+######################Test case for Code Pipeline
+Code Pipeline is a continous delivery service from AWS. It provides end to end process for software deployment 
+CodePipeline is standalone service. It is not mandatory to use it with codeBild and Code Deploy AWS service. However you can use CodeBuild/CodeDeploy services with Code Ppeline.
+Code Pipeline actions (source/Build/test/Deploy) has integration with many providers 
+Example :
+#########################
+Source:
+Amazon ECR
+Amazon S3
+BitBucket/GitHub
+########################
+Build:
+Code Build
+Jenkins
+######################
+Deploy
+Code Deploy
+Amazon S3
+Amazon ECS
+
+Please check the doc for mode details : https://docs.aws.amazon.com/codepipeline/latest/userguide/integrations-action-type.html#integrations-deploy
+
+################################################################################
+Below is an example of the code Pipeline written in CloudFormation:
+
+AWSTemplateFormatVersion: '2010-09-09'
+Resources:
+  MyPipeline:
+    Type: AWS::CodePipeline::Pipeline
+    Properties:
+      Name: mypipeline
+      RoleArn: arn:aws:iam::****************:role/service-role/AWSCodePipelineServiceRole-ap-south-1-mypipeline
+      ArtifactStore:                                                               ###Deining Articats
+        Type: S3
+        Location: mybuckercodepipeline                                  
+      # Triggers: 
+      #   - GitConfiguration: 
+      #           Push: 
+      #             - Branches: 
+      #                 Includes: 
+      #                   - main
+      #           SourceActionName: main  
+      #     ProviderType: CodeStarSourceConnection
+
+      Stages:                                                                  ###Stages Defined in the pipeline, Atleast 2 stages are required
+        - Name: Source
+          Actions:
+            - Name: SourceAction
+              ActionTypeId:
+                Category: Source
+                Owner: AWS
+                Provider: CodeStarSourceConnection                            ####Wih CodeStarConnection, No need to mention the Trigger, So any change in the source will trigger the pipeline
+                Version: "1"
+              Configuration:
+                ConnectionArn: arn:aws:codeconnections:ap-south-1:****************:connection/93b26815-4e19-4a8d-adc1-d78f7a5c2dc8
+                FullRepositoryId: kunal3237/JavacodeforPractice2  
+                BranchName: main  
+              OutputArtifacts:
+                - Name: mykey
+        - Name: Deploy
+          Actions:
+            - Name: DeployAction
+              ActionTypeId:
+                Category: Deploy
+                Owner: AWS
+                Provider: S3  
+                Version: "1"
+              Configuration:
+                BucketName: mybuckercodepipeline1 
+                Extract: true  
+              InputArtifacts:  
+                - Name: mykey
+ 
+######################################################################
+Creating Stack and check the Pipeline execution:
+
+kunal@kunal-Lenovo-U410:~/cloudFormation/chapter1$ aws cloudformation create-stack --stack-name myfirststack1 --template-body file://code-pipeline.yaml --region ap-south-1  --profile sharma --capabilities CAPABILITY_NAMED_IAM
+{
+    "StackId": "arn:aws:cloudformation:ap-south-1:****************:stack/myfirststack1/e520b960-ea13-11ef-a081-06a478cfc929"
+}
+kunal@kunal-Lenovo-U410:~/cloudFormation/chapter1$ aws codepipeline list-pipeline-executions --pipeline-name mypipeline --profile sharma --region ap-south-1
+{
+    "pipelineExecutionSummaries": [
+        {
+            "pipelineExecutionId": "fcf57e3a-b0be-4aff-9da0-79857404c17a",
+            "status": "Succeeded",
+            "startTime": "2025-02-13T19:37:47.738000+05:30",
+            "lastUpdateTime": "2025-02-13T19:37:54.739000+05:30",
+            "sourceRevisions": [
+                {
+                    "actionName": "SourceAction",
+                    "revisionId": "291c4ed8f8cec6e68b9a268831f2623f6719f91b",
+                    "revisionSummary": "{\"ProviderType\":\"GitHub\",\"CommitMessage\":\"Update deployment.yaml\"}",
+                    "revisionUrl": "https://ap-south-1.console.aws.amazon.com/codesuite/settings/connections/redirect?connectionArn=arn:aws:codeconnections:ap-south-1:****************:connection/93b26815-4e19-4a8d-adc1-d78f7a5c2dc8&referenceType=COMMIT&FullRepositoryId=kunal3237/JavacodeforPractice2&Commit=291c4ed8f8cec6e68b9a268831f2623f6719f91b"
+                }
+            ],
+            "trigger": {
+                "triggerType": "CreatePipeline",
+                "triggerDetail": "arn:aws:iam::****************:user/sharma"
+            },
+            "executionMode": "SUPERSEDED"
+        }
+    ]
+}
+kunal@kunal-Lenovo-U410:~/cloudFormation/chapter1$ 
+
+##############################################################
+Artifacts after pipeline execution:
+kunal@kunal-Lenovo-U410:~/cloudFormation/chapter1$ aws s3 ls s3://mybuckercodepipeline1 --profile sharma --region ap-south-1
+                           PRE src1/
+2025-02-13 19:37:54        547 appspec.yml
+2025-02-13 19:37:54        462 build2.yml
+2025-02-13 19:37:54        840 buildspec-batch-list-compute-type.yaml
+2025-02-13 19:37:54       1081 buildspec-build-matrix.yaml
+2025-02-13 19:37:54       1092 buildspec-graph.yaml
+2025-02-13 19:37:54        690 buildspec.yaml
+2025-02-13 19:37:54        335 deployment.yaml
+2025-02-13 19:37:55        679 index.html
+2025-02-13 19:37:55        848 pom.xml
+kunal@kunal-Lenovo-U410:~/cloudFormation/chapter1$ aws s3 ls s3://mybuckercodepipeline --profile sharma --region ap-south-1
+                           PRE mypipeline/
+kunal@kunal-Lenovo-U410:~/cloudFormation/chapter1$ aws s3 ls s3://mybuckercodepipeline/mypipeline --profile sharma --region ap-south-1
+                           PRE mypipeline/
+
+##################################################################
+Making Changes in the source i.e Github
